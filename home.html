@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Route& - AI 로컬 상권 공간 진단 서비스</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #000000; color: #ffffff; }
+        .blur-effect { filter: blur(8px); }
+    </style>
+</head>
+<body class="bg-black text-white antialiased">
+
+    <div id="app" class="min-h-screen flex flex-col justify-between">
+        
+        <header class="border-b border-gray-800 px-6 py-4 flex justify-between items-center max-w-7xl mx-auto w-full">
+            <h1 class="text-2xl font-bold tracking-tight">Route<span class="text-[#2596be]">&</span></h1>
+            <span class="bg-gray-900 border border-gray-800 text-xs px-3 py-1.5 rounded-full text-gray-400 font-medium">AI 기반 로컬 상권 진단 서비스</span>
+        </header>
+
+        <main class="flex-grow max-w-4xl mx-auto px-6 py-16 text-center">
+            <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 leading-tight">
+                손님들은 왜 구경만 하고 나갈까?<br>로컬 매장 3초 AI 동선 진단
+            </h2>
+            <p class="text-lg md:text-xl text-gray-300 font-medium mb-2">
+                비싼 컨설팅 대신 사진 한 장으로. 우리 동네 모든 사장님을 위한 Route<span class="text-[#2596be]">&</span>의 공간 진단 서비스를 지금 무료로 체험해 보세요.
+            </p>
+            <p class="text-sm text-gray-500 max-w-2xl mx-auto mb-12">
+                매장 사진을 업로드하면 AI가 소비자의 시선 흐름, 이동 동선, 진열 상태를 즉시 분석하여 매장 방문객이 머무르고 싶어 하는 공간 개선안을 제안합니다.
+            </p>
+
+            <div id="diagnostic-container" class="bg-zinc-950 border border-zinc-900 rounded-2xl p-8 max-w-xl mx-auto text-left shadow-2xl">
+                <div id="dropzone" class="border-2 border-dashed border-zinc-800 rounded-xl p-8 text-center cursor-pointer hover:border-[#2596be] transition-colors mb-6 group" onclick="simulateUpload()">
+                    <div class="flex flex-col items-center justify-center space-y-3">
+                        <i data-lucide="image" class="w-10 h-10 text-gray-500 group-hover:text-[#2596be] transition-colors"></i>
+                        <p id="upload-text" class="text-sm font-medium text-gray-400">매장 내부 또는 전경 사진을 업로드하세요</p>
+                        <p class="text-xs text-zinc-600">지원 형식: JPG, PNG (최대 5MB)</p>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">업종 선택</label>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="chip px-3 py-1.5 rounded-lg text-sm bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-700" onclick="selectChip(this)">카페</button>
+                        <button class="chip px-3 py-1.5 rounded-lg text-sm bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-700" onclick="selectChip(this)">의류/편집숍</button>
+                        <button class="chip px-3 py-1.5 rounded-lg text-sm bg-[#2596be]/10 text-[#2596be] border border-[#2596be]" onclick="selectChip(this)">로컬 기념품숍/독립서점</button>
+                        <button class="chip px-3 py-1.5 rounded-lg text-sm bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-700" onclick="selectChip(this)">전통시장 상점</button>
+                        <button class="chip px-3 py-1.5 rounded-lg text-sm bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-700" onclick="selectChip(this)">주점</button>
+                        <button class="chip px-3 py-1.5 rounded-lg text-sm bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-700" onclick="selectChip(this)">식당</button>
+                        <button class="chip px-3 py-1.5 rounded-lg text-sm bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-700" onclick="selectChip(this)">기타</button>
+                    </div>
+                </div>
+
+                <button id="cta-btn" class="w-full bg-[#2596be] hover:bg-[#1d7aa0] text-white font-semibold py-3.5 px-4 rounded-xl shadow-lg transition-colors flex justify-center items-center space-x-2" onclick="startAnalysis()">
+                    <span>무료 공간 진단하기</span>
+                </button>
+            </div>
+
+            <div id="dynamic-content" class="mt-16 text-left hidden space-y-16">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                    <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-6 space-y-6 shadow-xl">
+                        <div class="flex items-center space-x-4">
+                            <div class="relative w-20 h-20 flex items-center justify-center rounded-full border-4 border-[#2596be] border-t-zinc-800 animate-spin-slow">
+                                <span class="absolute text-md font-bold text-white">72점</span>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-bold text-white">진단 결과: 72점 / 100점</h4>
+                                <p class="text-xs text-zinc-400 mt-0.5">개선이 필요한 중간 단계의 로컬 매장 진열 상태입니다.</p>
+                            </div>
+                        </div>
+                        <hr class="border-zinc-900">
+                        <div>
+                            <h5 class="text-xs font-bold text-[#2596be] tracking-wider uppercase mb-2">⚠️ 핵심 문제점</h5>
+                            <ul class="text-sm text-zinc-300 space-y-1.5 list-disc pl-4">
+                                <li>입구 주시 구역 시야 확보 부족 (방문객 진입 장벽 존재)</li>
+                                <li>가격 표기 및 카운터 주변 구매 유도(POP) 홍보물 부족</li>
+                                <li>중앙 매대 주변 고객 병목 현상 발생 우려</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h5 class="text-xs font-bold text-[#2596be] tracking-wider uppercase mb-2">💡 추천 액션 플랜</h5>
+                            <ul class="text-sm text-zinc-300 space-y-1.5 list-disc pl-4">
+                                <li><strong class="text-white">우선순위 1:</strong> 베스트셀러 및 대표 상품을 입구 정면 1.2m 시선 구역 배치</li>
+                                <li><strong class="text-white">우선순위 2:</strong> 결제 대기 동선 주변 가격표 및 소형 미끼 상품 추가</li>
+                                <li><strong class="text-white">우선순위 3:</strong> 중앙 통로 폭 최소 1.2m 이상 확보로 도보 방문객 체류 시간 연장</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-6 space-y-6 shadow-xl relative overflow-hidden">
+                        <h4 class="text-lg font-bold text-white flex items-center space-x-2">
+                            <span>💡 Route<span class="text-[#2596be]">&</span> 로컬 상권 활성화 상생 패키지</span>
+                        </h4>
+                        <div class="space-y-4 text-sm">
+                            <div class="bg-zinc-900/50 p-3.5 rounded-xl border border-zinc-900">
+                                <span class="text-xs font-bold text-[#2596be] block mb-1">STEP 1. 상세 분석 리포트</span>
+                                <p class="text-zinc-300 text-xs">4,600원 결제 시, 구역별 공간 진단 및 방문객 맞춤형 딥다이브 PDF 리포트 즉시 다운로드</p>
+                            </div>
+                            <div class="bg-zinc-900/50 p-3.5 rounded-xl border border-[#2596be]/30 relative">
+                                <span class="absolute top-3 right-3 bg-[#2596be] text-black font-extrabold text-[10px] px-1.5 py-0.5 rounded">한정 혜택</span>
+                                <span class="text-xs font-bold text-[#2596be] block mb-1">STEP 2. 시즌별 VMD 케어 (무료 혜택)</span>
+                                <p class="text-zinc-300 text-xs">1단계 결제 고객 한정 베네핏! 오프라인 매장이 시즌마다 진열을 바꿔야 하는 점을 극복하는 '시즌별 매장 디스플레이 및 방문객 타깃 마케팅 가이드라인 뉴스레터 정기 구독권'을 0원에 평생 제공합니다.</p>
+                            </div>
+                        </div>
+                        <button class="w-full bg-[#2596be] hover:bg-[#1d7aa0] text-white font-semibold py-3 rounded-xl text-sm shadow transition-colors" onclick="showToast('[상세 분석 리포트 다운로드] 기능 준비 중입니다.')">
+                            [상세 분석 리포트 다운로드 (4,600원)]
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-6 shadow-xl">
+                    <h4 class="text-lg font-bold text-white mb-1">👀 다른 매장들은 Route<span class="text-[#2596be]">&</span>으로 어떻게 문제를 해결했을까?</h4>
+                    <p class="text-xs text-zinc-400 mb-6">내 업종과 비슷한 매장의 비밀 개선안 엿보기</p>
+                    
+                    <div class="border border-zinc-900 rounded-xl p-4 bg-zinc-900/20 relative">
+                        <span class="text-sm font-bold text-white block mb-4">성수동 A 독립서점 (진단 후 주간 매출 34% 상승)</span>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="bg-zinc-900 p-6 rounded-lg text-center text-xs text-zinc-500 border border-zinc-800">[Before: 병목이 심한 입구 구조]</div>
+                            <div class="bg-[#2596be]/5 p-6 rounded-lg text-center text-xs text-[#2596be] border border-[#2596be]/20">[After: 시선이 흐르는 오픈형 VMD]</div>
+                        </div>
+                        
+                        <div class="relative py-8 px-2 border-t border-zinc-900 mt-2">
+                            <div class="blur-effect text-xs text-zinc-600 space-y-1 select-none pointer-events-none">
+                                <p>핵심 진단 결과: 본 점포는 방문객 트래픽 조사 결과 입구 우측 가구 배치 진열이 시선을 완벽히 차단하고 있었으며...</p>
+                                <p>해결 솔루션 도출: 매대 높이를 기존 1.5m에서 1.2m로 낮추는 시각 마케팅 기법을 적용하여 진입률을 개선하고...</p>
+                            </div>
+                            <div class="absolute inset-0 flex items-center justify-center bg-black/40 rounded-b-xl">
+                                <button class="bg-[#2596be] hover:bg-[#1d7aa0] text-white font-semibold py-2.5 px-5 rounded-xl text-xs shadow-lg transition-colors" onclick="showToast('[비슷한 점포 상세 분석 사례 잠금해제] 기능 준비 중입니다.')">
+                                    [비슷한 점포 상세 분석 사례 잠금해제하기 (4,600원)]
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-6 shadow-xl">
+                    <h4 class="text-lg font-bold text-white mb-1">📐 3D 공간 개선 시뮬레이션 미리보기</h4>
+                    <p class="text-xs text-zinc-400 mb-6">내 가게 사진을 기반으로 가구 배치와 동선이 바뀐 최종 인테리어 레이아웃을 3D 이미지로 미리 확인해보세요.</p>
+                    
+                    <div class="border border-zinc-900 rounded-xl p-12 bg-zinc-900/10 flex flex-col items-center justify-center space-y-4 relative overflow-hidden">
+                        <div class="absolute inset-0 opacity-5 pointer-events-none bg-[radial-gradient(#2596be_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                        <i data-lucide="layout-grid" class="w-12 h-12 text-zinc-700"></i>
+                        <span class="text-xs text-zinc-500 font-mono tracking-widest">[ FUTURISTIC 3D ARCHITECTURAL LAYOUT BLUEPRINT ]</span>
+                        <button class="bg-[#2596be] hover:bg-[#1d7aa0] text-white font-semibold py-2.5 px-5 rounded-xl text-xs shadow-lg transition-colors relative z-10" onclick="showToast('[3D 이미지 시뮬레이션 및 600원 결제] 기능 준비 중입니다.')">
+                            [동선 반영 3D 최종 이미지 생성하기 (600원)]
+                        </button>
+                    </div>
+                    
+                    <div class="text-center mt-12">
+                        <button class="text-xs text-zinc-500 hover:text-zinc-400 underline transition-colors" onclick="resetApp()">다시 진단하기</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="border-t border-gray-800 px-6 py-4 text-center text-xs text-gray-600 max-w-7xl mx-auto w-full">
+            © 2026 Route<span class="text-[#2596be]">&</span>. 모든 공간의 경험을 매출로 연결합니다.
+        </footer>
+    </div>
+
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-900 border border-zinc-800 text-white px-5 py-3 rounded-xl shadow-2xl text-xs font-medium tracking-tight hidden z-50 flex items-center space-x-2">
+        <i data-lucide="info" class="w-4 h-4 text-[#2596be]"></i>
+        <span id="toast-msg">알림 메시지</span>
+    </div>
+
+    <script>
+        // Init Lucide Icons
+        lucide.createIcons();
+
+        let isFileUploaded = false;
+
+        function simulateUpload() {
+            isFileUploaded = true;
+            document.getElementById('upload-text').innerText = "✅ 매장_정면_진단사진.jpg (2.4MB) 로드 완료";
+            document.getElementById('upload-text').classList.remove('text-gray-400');
+            document.getElementById('upload-text').classList.add('text-[#2596be]');
+            showToast("사진이 정상적으로 업로드되었습니다.");
+        }
+
+        function selectChip(selectedBtn) {
+            document.querySelectorAll('.chip').forEach(btn => {
+                btn.classList.remove('bg-[#2596be]/10', 'text-[#2596be]', 'border-[#2596be]');
+                btn.classList.add('bg-zinc-900', 'text-zinc-400', 'border-zinc-800');
+            });
+            selectedBtn.classList.remove('bg-zinc-900', 'text-zinc-400', 'border-zinc-800');
+            selectedBtn.classList.add('bg-[#2596be]/10', 'text-[#2596be]', 'border-[#2596be]');
+        }
+
+        function startAnalysis() {
+            if(!isFileUploaded) {
+                showToast("⚠️ 먼저 매장 사진을 업로드해 주세요!");
+                return;
+            }
+
+            const ctaBtn = document.getElementById('cta-btn');
+            ctaBtn.disabled = true;
+            
+            const phrases = [
+                "소비자 시선 흐름 분석 중...",
+                "가구 배치 및 이동 동선 계산 중...",
+                "방문객 매장 대응 VMD 평가 중...",
+                "개선 리포트 생성 중..."
+            ];
+            
+            let i = 0;
+            ctaBtn.innerHTML = `<span>${phrases[0]}</span>`;
+            
+            const interval = setInterval(() => {
+                i++;
+                if(i < phrases.length) {
+                    ctaBtn.innerHTML = `<span>${phrases[i]}</span>`;
+                } else {
+                    clearInterval(interval);
+                    document.getElementById('diagnostic-container').classList.add('hidden');
+                    const dynamicContent = document.getElementById('dynamic-content');
+                    dynamicContent.classList.remove('hidden');
+                    dynamicContent.scrollIntoView({ behavior: 'smooth' });
+                    showToast("✨ AI 공간 진단 리포트가 성공적으로 생성되었습니다!");
+                }
+            }, 1500);
+        }
+
+        function resetApp() {
+            isFileUploaded = false;
+            document.getElementById('upload-text').innerText = "매장 내부 또는 전경 사진을 업로드하세요";
+            document.getElementById('upload-text').className = "text-sm font-medium text-gray-400";
+            document.getElementById('diagnostic-container').classList.remove('hidden');
+            document.getElementById('dynamic-content').classList.add('hidden');
+            document.getElementById('cta-btn').disabled = false;
+            document.getElementById('cta-btn').innerHTML = "<span>무료 공간 진단하기</span>";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => { toast.classList.add('hidden'); }, 3000);
+        }
+    </script>
+</body>
+</html>
