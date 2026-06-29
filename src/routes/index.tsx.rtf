@@ -1,0 +1,711 @@
+{\rtf1\ansi\ansicpg949\cocoartf2870
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 import \{ createFileRoute \} from "@tanstack/react-router";\
+import \{ useEffect, useRef, useState, type ChangeEvent, type DragEvent \} from "react";\
+import \{ toast \} from "sonner";\
+\
+export const Route = createFileRoute("/")(\{\
+  head: () => (\{\
+    meta: [\
+      \{ title: "Route& \'97 AI \uc0\u44592 \u48152  \u47196 \u52972  \u49345 \u44428  \u51652 \u45800  \u49436 \u48708 \u49828 " \},\
+      \{\
+        name: "description",\
+        content:\
+          "\uc0\u49324 \u51652  \u54620  \u51109 \u51004 \u47196  4,600\u50896 \u50640  \u48155 \u50500 \u48372 \u45716  AI \u44277 \u44036  \u51652 \u45800 . \u48169 \u47928 \u44061  \u46041 \u49440 \u44620 \u51648  \u48516 \u49437 \u54644  \u50724 \u54532 \u46972 \u51064  \u47588 \u52636 \u51012  \u45132 \u50612 \u50732 \u47549 \u45768 \u45796 .",\
+      \},\
+      \{ property: "og:title", content: "Route& \'97 AI \uc0\u44592 \u48152  \u47196 \u52972  \u49345 \u44428  \u51652 \u45800  \u49436 \u48708 \u49828 " \},\
+      \{\
+        property: "og:description",\
+        content:\
+          "\uc0\u49552 \u45784 \u46308 \u51008  \u50780  \u44396 \u44221 \u47564  \u54616 \u44256  \u45208 \u44040 \u44620 ? \u49324 \u51652  \u54620  \u51109 \u51004 \u47196  \u48155 \u45716  \u47196 \u52972  \u47588 \u51109  3\u52488  AI \u46041 \u49440  \u51652 \u45800 .",\
+      \},\
+    ],\
+  \}),\
+  component: Index,\
+\});\
+\
+type Phase = "idle" | "loading" | "result";\
+\
+const CATEGORIES = [\
+  "\uc0\u52852 \u54168 ",\
+  "\uc0\u51032 \u47448 /\u54200 \u51665 \u49677 ",\
+  "\uc0\u47196 \u52972  \u44592 \u45392 \u54408 \u49677 /\u46021 \u47549 \u49436 \u51216 ",\
+  "\uc0\u51204 \u53685 \u49884 \u51109  \u49345 \u51216 ",\
+  "\uc0\u51452 \u51216 ",\
+  "\uc0\u49885 \u45817 ",\
+  "\uc0\u44592 \u53440 ",\
+] as const;\
+type Category = (typeof CATEGORIES)[number];\
+\
+const LOADING_PHRASES = [\
+  "\uc0\u49548 \u48708 \u51088  \u49884 \u49440  \u55120 \u47492  \u48516 \u49437  \u51473 ...",\
+  "\uc0\u44032 \u44396  \u48176 \u52824  \u48143  \u51060 \u46041  \u46041 \u49440  \u44228 \u49328  \u51473 ...",\
+  "\uc0\u48169 \u47928 \u44061  \u47588 \u51109  \u45824 \u51025  VMD \u54217 \u44032  \u51473 ...",\
+  "\uc0\u44060 \u49440  \u47532 \u54252 \u53944  \u49373 \u49457  \u51473 ...",\
+];\
+\
+const ISSUES = [\
+  "\uc0\u51077 \u44396  \u51452 \u49884  \u44396 \u50669  \u49884 \u50556  \u54869 \u48372  \u48512 \u51313  (\u48169 \u47928 \u44061  \u51652 \u51077  \u51109 \u48317  \u51316 \u51116 )",\
+  "\uc0\u44032 \u44201  \u54364 \u44592  \u48143  \u52852 \u50868 \u53552  \u51452 \u48320  \u44396 \u47588  \u50976 \u46020 (POP) \u54861 \u48372 \u47932  \u48512 \u51313 ",\
+  "\uc0\u51473 \u50521  \u47588 \u45824  \u51452 \u48320  \u44256 \u44061  \u48337 \u47785  \u54788 \u49345  \u48156 \u49373  \u50864 \u47140 ",\
+];\
+\
+const ACTIONS = [\
+  "\uc0\u50864 \u49440 \u49692 \u50948  1: \u48288 \u49828 \u53944 \u49472 \u47084  \u48143  \u45824 \u54364  \u49345 \u54408 \u51012  \u51077 \u44396  \u51221 \u47732  1.2m \u49884 \u49440  \u44396 \u50669  \u48176 \u52824 ",\
+  "\uc0\u50864 \u49440 \u49692 \u50948  2: \u44208 \u51228  \u45824 \u44592  \u46041 \u49440  \u51452 \u48320  \u44032 \u44201 \u54364  \u48143  \u49548 \u54805  \u48120 \u45180  \u49345 \u54408  \u52628 \u44032 ",\
+  "\uc0\u50864 \u49440 \u49692 \u50948  3: \u51473 \u50521  \u53685 \u47196  \u54253  \u52572 \u49548  1.2m \u51060 \u49345  \u54869 \u48372 \u47196  \u46020 \u48372  \u48169 \u47928 \u44061  \u52404 \u47448  \u49884 \u44036  \u50672 \u51109 ",\
+];\
+\
+function Index() \{\
+  const [phase, setPhase] = useState<Phase>("idle");\
+  const [file, setFile] = useState<File | null>(null);\
+  const [preview, setPreview] = useState<string | null>(null);\
+  const [category, setCategory] = useState<Category>("\uc0\u47196 \u52972  \u44592 \u45392 \u54408 \u49677 /\u46021 \u47549 \u49436 \u51216 ");\
+  const loadingRef = useRef<HTMLDivElement>(null);\
+  const resultRef = useRef<HTMLDivElement>(null);\
+\
+  useEffect(() => \{\
+    if (!file) \{\
+      setPreview(null);\
+      return;\
+    \}\
+    const url = URL.createObjectURL(file);\
+    setPreview(url);\
+    return () => URL.revokeObjectURL(url);\
+  \}, [file]);\
+\
+  useEffect(() => \{\
+    if (phase === "loading") \{\
+      requestAnimationFrame(() => \{\
+        loadingRef.current?.scrollIntoView(\{ behavior: "smooth", block: "start" \});\
+      \});\
+    \} else if (phase === "result") \{\
+      requestAnimationFrame(() => \{\
+        resultRef.current?.scrollIntoView(\{ behavior: "smooth", block: "start" \});\
+      \});\
+    \}\
+  \}, [phase]);\
+\
+  const handleReset = () => \{\
+    setPhase("idle");\
+    setFile(null);\
+  \};\
+\
+  return (\
+    <div className="min-h-screen bg-bg text-text">\
+      <Header />\
+\
+      <main className="mx-auto w-full max-w-6xl px-5 pb-24 pt-10 sm:pt-16">\
+        <Hero />\
+\
+        \{phase === "idle" && (\
+          <section key="idle" className="animate-fade-in mt-12">\
+            <div className="rounded-2xl border border-border bg-surface p-5 sm:p-8">\
+              <Dropzone file=\{file\} preview=\{preview\} onFile=\{setFile\} />\
+              <div className="mt-7">\
+                <p className="text-sm text-muted-fg mb-3">\uc0\u50629 \u51333  \u49440 \u53469 </p>\
+                <CategoryChips value=\{category\} onChange=\{setCategory\} />\
+              </div>\
+              <button\
+                type="button"\
+                disabled=\{!file\}\
+                onClick=\{() => setPhase("loading")\}\
+                className="mt-8 w-full rounded-xl bg-neon px-6 py-4 text-base font-bold text-black transition disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-muted-fg disabled:shadow-none enabled:neon-glow enabled:hover:opacity-95"\
+              >\
+                \uc0\u47924 \u47308  \u44277 \u44036  \u51652 \u45800 \u54616 \u44592 \
+              </button>\
+              \{!file && (\
+                <p className="mt-3 text-center text-xs text-muted-fg">\
+                  \uc0\u47588 \u51109  \u49324 \u51652 \u51012  \u50629 \u47196 \u46300 \u54616 \u47732  \u51652 \u45800 \u51060  \u54876 \u49457 \u54868 \u46121 \u45768 \u45796 .\
+                </p>\
+              )\}\
+            </div>\
+          </section>\
+        )\}\
+\
+        \{phase === "loading" && (\
+          <section ref=\{loadingRef\} key="loading" className="animate-fade-in mt-12 scroll-mt-20">\
+            <LoadingPanel onDone=\{() => setPhase("result")\} />\
+          </section>\
+        )\}\
+\
+        \{phase === "result" && (\
+          <section ref=\{resultRef\} key="result" className="animate-fade-in mt-12 scroll-mt-20">\
+            <ResultDashboard\
+              preview=\{preview\}\
+              category=\{category\}\
+              onReset=\{handleReset\}\
+            />\
+          </section>\
+        )\}\
+      </main>\
+\
+      <Footer />\
+    </div>\
+  );\
+\}\
+\
+/* ---------------- Header ---------------- */\
+\
+function Header() \{\
+  return (\
+    <header className="sticky top-0 z-30 border-b border-border bg-bg/80 backdrop-blur">\
+      <div className="mx-auto grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 w-full max-w-6xl px-5 py-4">\
+        <div className="text-xl font-extrabold tracking-tight truncate">\
+          Route<span className="text-neon neon-text-glow">&amp;</span>\
+        </div>\
+        <span className="shrink-0 inline-flex items-center rounded-full border border-neon/40 bg-neon/5 px-3 py-1 text-[11px] sm:text-xs font-medium text-neon">\
+          AI \uc0\u44592 \u48152  \u47196 \u52972  \u49345 \u44428  \u51652 \u45800  \u49436 \u48708 \u49828 \
+        </span>\
+      </div>\
+    </header>\
+  );\
+\}\
+\
+/* ---------------- Hero ---------------- */\
+\
+function Hero() \{\
+  return (\
+    <section className="text-center pt-6 sm:pt-10 break-keep">\
+      <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold leading-tight tracking-tight">\
+        \uc0\u49552 \u45784 \u46308 \u51008  \u50780  \u44396 \u44221 \u47564  \u54616 \u44256  \u45208 \u44040 \u44620 ?\
+        <br />\
+        <span className="text-neon neon-text-glow">\
+          \uc0\u47196 \u52972  \u47588 \u51109  3\u52488  AI \u46041 \u49440  \u51652 \u45800 \
+        </span>\
+      </h1>\
+      <p className="mt-5 text-sm sm:text-base text-text/90 max-w-2xl mx-auto font-medium break-keep whitespace-pre-line">\
+        \{"\uc0\u48708 \u49916  \u52968 \u49444 \u54021  \u45824 \u49888  \u49324 \u51652  \u54620  \u51109 \u51004 \u47196 ,\\u00a0\\n\u50864 \u47532  \u46041 \u45348  \u47784 \u46304  \u49324 \u51109 \u45784 \u51012  \u50948 \u54620  Route&\u51032  \u44277 \u44036  \u51652 \u45800  \u49436 \u48708 \u49828 \u47484  \u51648 \u44552  \u52404 \u54744 \u54616 \u49464 \u50836 !\\n"\}\
+      </p>\
+      <p className="mt-4 text-xs sm:text-sm text-muted-fg max-w-2xl mx-auto break-keep whitespace-pre-line">\
+        \{"\uc0\u47588 \u51109  \u49324 \u51652 \u51012  \u50629 \u47196 \u46300 \u54616 \u47732  AI\u44032  \u49548 \u48708 \u51088 \u51032  \u49884 \u49440  \u55120 \u47492 , \u51060 \u46041  \u46041 \u49440 , \u51652 \u50676  \u49345 \u53468 \u47484  \u51593 \u49884  \u48516 \u49437 \u54616 \u50668 \\u00a0\\n\u47588 \u51109  \u48169 \u47928 \u44061 \u51060  \u47672 \u47924 \u47476 \u44256  \u49910 \u50612  \u54616 \u45716  \u44277 \u44036  \u44060 \u49440 \u50504 \u51012  \u51228 \u50504 \u54644 \u46300 \u47540 \u44172 \u50836 .\\n"\}\
+      </p>\
+    </section>\
+  );\
+\}\
+\
+/* ---------------- Dropzone ---------------- */\
+\
+function Dropzone(\{\
+  file,\
+  preview,\
+  onFile,\
+\}: \{\
+  file: File | null;\
+  preview: string | null;\
+  onFile: (f: File | null) => void;\
+\}) \{\
+  const inputRef = useRef<HTMLInputElement>(null);\
+  const [hover, setHover] = useState(false);\
+\
+  const handleSelect = (e: ChangeEvent<HTMLInputElement>) => \{\
+    const f = e.target.files?.[0];\
+    if (f) onFile(f);\
+  \};\
+\
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => \{\
+    e.preventDefault();\
+    setHover(false);\
+    const f = e.dataTransfer.files?.[0];\
+    if (f && f.type.startsWith("image/")) onFile(f);\
+  \};\
+\
+  return (\
+    <div\
+      role="button"\
+      tabIndex=\{0\}\
+      onClick=\{() => inputRef.current?.click()\}\
+      onKeyDown=\{(e) => (e.key === "Enter" || e.key === " ") && inputRef.current?.click()\}\
+      onDragOver=\{(e) => \{\
+        e.preventDefault();\
+        setHover(true);\
+      \}\}\
+      onDragLeave=\{() => setHover(false)\}\
+      onDrop=\{handleDrop\}\
+      className=\{`relative flex min-h-[200px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition $\{\
+        hover\
+          ? "border-neon bg-neon/5 neon-glow"\
+          : "border-border bg-surface-2 hover:border-neon/60"\
+      \}`\}\
+    >\
+      <input\
+        ref=\{inputRef\}\
+        type="file"\
+        accept="image/*"\
+        className="hidden"\
+        onChange=\{handleSelect\}\
+      />\
+      \{preview ? (\
+        <div className="flex w-full flex-col items-center gap-3">\
+          <img\
+            src=\{preview\}\
+            alt="\uc0\u50629 \u47196 \u46300  \u48120 \u47532 \u48372 \u44592 "\
+            className="max-h-48 rounded-lg border border-border object-contain"\
+          />\
+          <p className="text-sm text-text font-medium truncate max-w-full">\{file?.name\}</p>\
+          <p className="text-xs text-muted-fg">\uc0\u45796 \u47480  \u49324 \u51652 \u51004 \u47196  \u44368 \u52404 \u54616 \u47140 \u47732  \u45796 \u49884  \u53364 \u47533 \u54616 \u49464 \u50836 </p>\
+        </div>\
+      ) : (\
+        <>\
+          <div className="mb-3 text-3xl">\uc0\u55357 \u56567 </div>\
+          <p className="text-sm sm:text-base font-semibold break-keep">\
+            [NOW] \uc0\u47588 \u51109  \u49324 \u51652 \u51012  \u46300 \u47000 \u44536 \u54616 \u44144 \u45208 \{" "\}\
+            <span className="text-neon">\uc0\u53364 \u47533 \u54644 \u49436  \u50629 \u47196 \u46300 </span>\u54616 \u49464 \u50836 !\
+          </p>\
+          <p className="mt-1 text-xs text-muted-fg">JPG \'b7 PNG \'b7 WEBP \'b7 \uc0\u52572 \u45824  10MB</p>\
+        </>\
+      )\}\
+    </div>\
+  );\
+\}\
+\
+/* ---------------- Category chips ---------------- */\
+\
+function CategoryChips(\{\
+  value,\
+  onChange,\
+\}: \{\
+  value: Category;\
+  onChange: (v: Category) => void;\
+\}) \{\
+  return (\
+    <div className="flex flex-wrap gap-2">\
+      \{CATEGORIES.map((c) => \{\
+        const active = c === value;\
+        return (\
+          <button\
+            key=\{c\}\
+            type="button"\
+            onClick=\{() => onChange(c)\}\
+            className=\{`rounded-full border px-4 py-2 text-sm font-medium transition break-keep $\{\
+              active\
+                ? "border-neon bg-neon text-black neon-glow"\
+                : "border-border bg-surface-2 text-text hover:border-neon/60 hover:text-neon"\
+            \}`\}\
+          >\
+            \{c\}\
+          </button>\
+        );\
+      \})\}\
+    </div>\
+  );\
+\}\
+\
+/* ---------------- Loading panel (72-point simulation) ---------------- */\
+\
+function LoadingPanel(\{ onDone \}: \{ onDone: () => void \}) \{\
+  const [step, setStep] = useState(0);\
+\
+  useEffect(() => \{\
+    const id = setInterval(() => \{\
+      setStep((s) => \{\
+        if (s >= LOADING_PHRASES.length - 1) \{\
+          clearInterval(id);\
+          setTimeout(onDone, 1500);\
+          return s;\
+        \}\
+        return s + 1;\
+      \});\
+    \}, 1500);\
+    return () => clearInterval(id);\
+  \}, [onDone]);\
+\
+  return (\
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-surface px-6 py-16 text-center scan-line">\
+      <div className="mx-auto flex h-14 w-14 items-center justify-center">\
+        <span\
+          className="block h-12 w-12 rounded-full border-4 border-surface-2 border-t-neon neon-glow"\
+          style=\{\{ animation: "spin 0.9s linear infinite" \}\}\
+        />\
+      </div>\
+      <p className="mt-6 text-base sm:text-lg font-semibold text-text break-keep">\
+        \{LOADING_PHRASES[step]\}\
+      </p>\
+      <p className="mt-2 text-xs text-muted-fg">\
+        \uc0\u52509  72\u44060  \u51652 \u45800  \u54637 \u47785  \'b7 \{Math.min((step + 1) * 18, 72)\}/72 \u50756 \u47308 \
+      </p>\
+      <div className="mt-6 mx-auto h-1.5 w-full max-w-sm overflow-hidden rounded-full bg-surface-2">\
+        <div\
+          className="h-full bg-neon transition-all duration-1000 ease-out"\
+          style=\{\{ width: `$\{((step + 1) / LOADING_PHRASES.length) * 100\}%` \}\}\
+        />\
+      </div>\
+      <style>\{`\
+        @keyframes spin \{ to \{ transform: rotate(360deg); \} \}\
+      `\}</style>\
+    </div>\
+  );\
+\}\
+/* ---------------- Result dashboard ---------------- */\
+\
+function ResultDashboard(\{\
+  preview,\
+  category,\
+  onReset,\
+\}: \{\
+  preview: string | null;\
+  category: Category;\
+  onReset: () => void;\
+\}) \{\
+  const score = 72;\
+\
+  const handlePaidClick = () => \{\
+    toast("\uc0\u44208 \u51228  \u48143  \u49345 \u49464  \u47532 \u54252 \u53944  \u45796 \u50868 \u47196 \u46300  \u44592 \u45733  \u51456 \u48708  \u51473 \u51077 \u45768 \u45796 .", \{\
+      description: "\uc0\u47088 \u52845  \u49884  \u44032 \u51109  \u47676 \u51200  \u50508 \u47140 \u46300 \u47540 \u44172 \u50836 .",\
+    \});\
+  \};\
+\
+  return (\
+    <div className="space-y-6">\
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">\
+        \{/* LEFT COLUMN \'97 AI Result */\}\
+        <div className="space-y-6 lg:col-span-3">\
+          \{/* Score panel */\}\
+          <div className="rounded-2xl border border-border bg-surface p-6 sm:p-8">\
+            <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-8">\
+              <ScoreRing value=\{score\} />\
+              <div className="min-w-0 flex-1 text-center sm:text-left break-keep">\
+                <p className="text-xs uppercase tracking-widest text-muted-fg">\
+                  Route<span className="text-neon">&amp;</span> VMD Score\
+                </p>\
+                <h2 className="mt-1 text-2xl sm:text-3xl font-extrabold">\
+                  72\uc0\u51216  / 100\u51216 \
+                </h2>\
+                <p className="mt-2 text-sm text-muted-fg">\
+                  \uc0\u44060 \u49440 \u51060  \u54596 \u50836 \u54620  \u51473 \u44036  \u45800 \u44228 \u51032  \u47196 \u52972  \u47588 \u51109  \u51652 \u50676  \u49345 \u53468 \u51077 \u45768 \u45796 .\
+                </p>\
+                <p className="mt-3 text-xs text-muted-fg">\
+                  \uc0\u50629 \u51333 :\{" "\}\
+                  <span className="text-text font-medium">\{category\}</span>\
+                  \{preview && <> \'b7 \uc0\u48516 \u49437  \u51060 \u48120 \u51648  1\u51109  \u52376 \u47532  \u50756 \u47308 </>\}\
+                </p>\
+              </div>\
+            </div>\
+          </div>\
+\
+          \{/* Issues */\}\
+          <div className="rounded-2xl border border-border bg-surface p-6 sm:p-8">\
+            <div className="mb-4 flex items-center gap-2">\
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-neon/15 text-xs font-bold text-neon">\
+                !\
+              </span>\
+              <h3 className="text-lg font-bold">\uc0\u54645 \u49900  \u51060 \u49800 </h3>\
+            </div>\
+            <ul className="space-y-3">\
+              \{ISSUES.map((t, i) => (\
+                <li key=\{i\} className="flex gap-3 text-sm sm:text-base break-keep">\
+                  <span className="mt-2 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-neon neon-glow" />\
+                  <span className="text-text">\{t\}</span>\
+                </li>\
+              ))\}\
+            </ul>\
+          </div>\
+\
+          \{/* Actions */\}\
+          <div className="relative overflow-hidden rounded-2xl border border-border bg-surface p-6 sm:p-8">\
+            <div className="absolute left-0 top-0 h-full w-1 bg-neon neon-glow" />\
+            <div className="mb-4 flex items-center gap-2">\
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-neon/15 text-xs font-bold text-neon">\
+                \uc0\u10003 \
+              </span>\
+              <h3 className="text-lg font-bold">\uc0\u52628 \u52380  \u50529 \u49496  \u54540 \u47004 </h3>\
+            </div>\
+            <ol className="space-y-4">\
+              \{ACTIONS.map((t, i) => (\
+                <li key=\{i\} className="flex gap-4 break-keep">\
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-sm font-bold text-neon">\
+                    \{i + 1\}\
+                  </span>\
+                  <span className="pt-1 text-sm sm:text-base text-text">\{t\}</span>\
+                </li>\
+              ))\}\
+            </ol>\
+          </div>\
+        </div>\
+\
+        \{/* RIGHT COLUMN \'97 Premium Package */\}\
+        <aside className="lg:col-span-2">\
+          <div className="lg:sticky lg:top-24 space-y-4">\
+            <div className="relative overflow-hidden rounded-2xl border border-neon/40 bg-surface p-6 sm:p-7 neon-glow">\
+              <div className="absolute inset-x-0 top-0 h-1 gradient-offer" />\
+              <h3 className="text-lg sm:text-xl font-extrabold break-keep">\
+                \uc0\u55357 \u56481  Route<span className="text-neon">&amp;</span> \u47196 \u52972  \u49345 \u44428  \u54876 \u49457 \u54868  \u49345 \u49373  \u54056 \u53412 \u51648 \
+              </h3>\
+              <p className="mt-1 text-xs text-muted-fg">\
+                1\uc0\u45800 \u44228  + 2\u45800 \u44228  \u46356 \u48296 \u47213 \u50504  \u50672 \u44228 \
+              </p>\
+\
+              \{/* STEP 1 */\}\
+              <div className="mt-5 rounded-xl border border-border bg-surface-2 p-4">\
+                <div className="flex items-center gap-2">\
+                  <span className="inline-flex items-center rounded-md bg-neon px-2 py-0.5 text-[11px] font-bold text-black">\
+                    STEP 1\
+                  </span>\
+                  <span className="text-sm font-semibold">\
+                    \uc0\u49345 \u49464  \u48516 \u49437  \u47532 \u54252 \u53944 \
+                  </span>\
+                </div>\
+                <p className="mt-2 text-xs sm:text-sm text-muted-fg break-keep leading-relaxed">\
+                  <span className="text-neon font-bold">4,600\uc0\u50896 </span> \u44208 \u51228  \u49884 ,\
+                  \uc0\u44396 \u50669 \u48324  \u44277 \u44036  \u51652 \u45800  \u48143  \u48169 \u47928 \u44061  \u47582 \u52644 \u54805  \u46373 \u45796 \u51060 \u48652  PDF \u47532 \u54252 \u53944 \
+                  \uc0\u51593 \u49884  \u45796 \u50868 \u47196 \u46300  \u44032 \u45733 !&nbsp;\
+                </p>\
+              </div>\
+\
+              \{/* STEP 2 */\}\
+              <div className="mt-3 rounded-xl border border-emerald-accent/40 bg-emerald-accent/5 p-4">\
+                <div className="flex items-center gap-2 flex-wrap">\
+                  <span className="inline-flex items-center rounded-md bg-emerald-accent px-2 py-0.5 text-[11px] font-bold text-black">\
+                    STEP 2\
+                  </span>\
+                  <span className="text-[11px] font-bold text-emerald-accent">\
+                    [\uc0\u54620 \u51221  \u54812 \u53469 ] \u54217 \u49373  0\u50896 \
+                  </span>\
+                </div>\
+                <p className="mt-2 text-sm font-semibold break-keep">\
+                  \uc0\u49884 \u51596 \u48324  VMD \u52992 \u50612  \u47924 \u47308  \u51228 \u44277 \
+                </p>\
+                <p className="mt-1 text-xs text-muted-fg break-keep leading-relaxed whitespace-pre-line">\
+                  \{"\uc0\u44208 \u51228  \u44256 \u44061 \u50640 \u44172 \u47564  \u51228 \u44277 \u46104 \u45716  \u53945 \u48324  \u48288 \u45348 \u54607 !\\u00a0\\n\u48388 \'b7\u50668 \u47492 \'b7\u44032 \u51012 \'b7\u44200 \u50872 , \u53356 \u47532 \u49828 \u47560 \u49828 \'b7\u54652 \u47084 \u50952  \u46321  \u49884 \u51596 \u47560 \u45796  \u51652 \u50676 \u51012  \u48148 \u45012 \u50556  \u54616 \u45716  \u50724 \u54532 \u46972 \u51064  \u47588 \u51109 \u51012  \u50948 \u54620  \u44396 \u46021 \u54805  \u53080 \u53584 \u52768 \u50696 \u50836 .\\u00a0\\n\'93\u49884 \u51596 \u48324  \u47588 \u51109  \u46356 \u49828 \u54540 \u47112 \u51060  \u48143  \u48169 \u47928 \u44061  \u53440 \u44611  \u47560 \u52992 \u54021  \u44032 \u51060 \u46300 \u46972 \u51064  \u45684 \u49828 \u47112 \u53552  \u51221 \u44592  \u44396 \u46021 \u44428 \'94\u51012  0\u50896 \u50640  \u54217 \u49373  \u47926 \u50612 \u49436  \u51228 \u44277 \u54633 \u45768 \u45796 .\\n"\}\
+                </p>\
+              </div>\
+\
+              \{/* Main monetization CTA */\}\
+              <button\
+                type="button"\
+                onClick=\{handlePaidClick\}\
+                className="mt-5 w-full rounded-xl bg-neon px-5 py-4 text-sm sm:text-base font-bold text-black transition hover:opacity-95 neon-glow break-keep"\
+              >\
+                \uc0\u49345 \u49464  \u48516 \u49437  \u47532 \u54252 \u53944  \u45796 \u50868 \u47196 \u46300 \
+              </button>\
+\
+              <div className="mt-3 flex justify-center">\
+                <div className="gradient-offer rounded-full p-[1.5px]">\
+                  <div className="rounded-full bg-bg px-3 py-1.5 text-center">\
+                    <p className="text-[11px] sm:text-xs font-semibold leading-snug break-keep">\
+                      <span className="gradient-offer bg-clip-text text-transparent">\
+                        \uc0\u55356 \u57217  \u44208 \u51228  \u49884  STEP 2 \u54217 \u49373  \u47924 \u47308  \u51088 \u46041  \u51201 \u50857 \
+                      </span>\
+                    </p>\
+                  </div>\
+                </div>\
+              </div>\
+\
+              <p className="mt-3 text-center text-[11px] text-muted-fg break-keep">\
+                \uc0\u52964 \u54588  \u54620  \u51092  \u44050 \u51004 \u47196 \
+                <br className="hidden sm:block" /> \uc0\u50864 \u47532  \u47588 \u51109 \u51032  1\u45380 \u51012  \u48148 \u45012 \u48372 \u49464 \u50836 .\
+              </p>\
+            </div>\
+          </div>\
+        </aside>\
+      </div>\
+\
+      \{/* Section 3 \'97 Similar Stores Success Case (FOMO paywall) */\}\
+      <section className="mt-10 rounded-2xl border border-border bg-surface p-6 sm:p-8">\
+        <div className="mb-6 text-center break-keep">\
+          <h3 className="text-xl sm:text-2xl font-extrabold">\
+            \uc0\u55357 \u56384  \u45796 \u47480  \u47588 \u51109 \u46308 \u51008  Route<span className="text-neon">&amp;</span>\u51004 \u47196  \u50612 \u46523 \u44172  \u47928 \u51228 \u47484  \u54644 \u44208 \u54664 \u51012 \u44620 ?\
+          </h3>\
+          <p className="mt-2 text-sm text-muted-fg">\
+            \uc0\u45236  \u50629 \u51333 \u44284  \u48708 \u49847 \u54620  \u47588 \u51109 \u51032  \u48708 \u48128  \u44060 \u49440 \u50504  \u50687 \u48372 \u44592 \
+          </p>\
+        </div>\
+\
+        <div className="rounded-xl border border-border bg-surface-2 p-5 sm:p-6">\
+          <div className="flex flex-wrap items-center gap-2">\
+            <span className="inline-flex items-center rounded-md bg-neon/15 px-2 py-0.5 text-[11px] font-bold text-neon">\
+              CASE 01\
+            </span>\
+            <p className="text-sm sm:text-base font-semibold break-keep">\
+              \uc0\u49457 \u49688 \u46041  A \u46021 \u47549 \u49436 \u51216 \{" "\}\
+              <span className="text-neon">(\uc0\u51652 \u45800  \u54980  \u51452 \u44036  \u47588 \u52636  34% \u49345 \u49849 )</span>\
+            </p>\
+          </div>\
+\
+          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">\
+            <div className="flex h-40 flex-col items-center justify-center rounded-lg border border-border bg-bg text-center px-4 break-keep">\
+              <span className="text-[10px] uppercase tracking-widest text-muted-fg">\
+                Before\
+              </span>\
+              <p className="mt-2 text-sm font-semibold text-text">\
+                \uc0\u48337 \u47785 \u51060  \u49900 \u54620  \u51077 \u44396  \u44396 \u51312 \
+              </p>\
+              <div className="mt-3 text-2xl">\uc0\u55357 \u56999 </div>\
+            </div>\
+            <div className="flex h-40 flex-col items-center justify-center rounded-lg border border-neon/40 bg-neon/5 text-center px-4 break-keep neon-glow">\
+              <span className="text-[10px] uppercase tracking-widest text-neon">\
+                After\
+              </span>\
+              <p className="mt-2 text-sm font-semibold text-text">\
+                \uc0\u49884 \u49440 \u51060  \u55120 \u47476 \u45716  \u50724 \u54536 \u54805  VMD\
+              </p>\
+              <div className="mt-3 text-2xl">\uc0\u10024 </div>\
+            </div>\
+          </div>\
+\
+          <div className="relative mt-6 overflow-hidden rounded-lg border border-border bg-bg p-5">\
+            <div\
+              className="select-none break-keep text-sm leading-relaxed text-text/90"\
+              style=\{\{ filter: "blur(8px)" \}\}\
+              aria-hidden\
+            >\
+              <p>\
+                \uc0\u54645 \u49900  \u51060 \u49800 : \u51077 \u44396  1.5m \u44396 \u44036 \u50640  \u47588 \u45824 \u44032  \u48128 \u51665 \u46104 \u50612  \u51652 \u51077  \u52488 \u44592  3\u52488  \u45236 \
+                \uc0\u49884 \u49440  \u48516 \u49328 \u51060  \u49900 \u44033 \u54616 \u44172  \u48156 \u49373 . \u46020 \u48372  \u44288 \u44305 \u44061 \u51032  60%\u44032  \u47588 \u51109  \u50808 \u44288 \u47564 \
+                \uc0\u54869 \u51064  \u54980  \u51060 \u53448 \u54616 \u45716  \u54056 \u53556 .\
+              </p>\
+              <p className="mt-2">\
+                \uc0\u44060 \u49440 \u50504 : \u51077 \u44396  \u51221 \u47732  \u47588 \u45824 \u47484  \u12599 \u51088 \u54805  \u49884 \u49440  \u55120 \u47492 \u51004 \u47196  \u51116 \u48176 \u52824 \u54616 \u44256 ,\
+                \uc0\u48288 \u49828 \u53944 \u49472 \u47084  \u51652 \u50676 \u45824 \u47484  1.2m \u49884 \u49440  \u44396 \u50669 \u51004 \u47196  \u51060 \u46041 . \u52852 \u50868 \u53552  \u50694  \u48120 \u45180 \
+                \uc0\u49345 \u54408  \u51316 \u51012  \u49888 \u49444 \u54616 \u50668  \u44208 \u51228  \u46041 \u49440 \u51032  \u44061 \u45800 \u44032  23% \u49345 \u49849 .\
+              </p>\
+              <p className="mt-2">\
+                \uc0\u44208 \u44284 : \u51652 \u45800  \u54980  4\u51452  \u52264  \u44592 \u51456  \u51452 \u44036  \u47588 \u52636  34% \u49345 \u49849 , \u54217 \u44512  \u52404 \u47448 \
+                \uc0\u49884 \u44036  1\u48516  47\u52488  \u8594  4\u48516  12\u52488 \u47196  \u51613 \u44032 .\
+              </p>\
+            </div>\
+\
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-b from-bg/30 via-bg/60 to-bg/90 px-5 text-center">\
+              <span className="inline-flex items-center rounded-full border border-neon/40 bg-neon/10 px-3 py-1 text-[11px] font-semibold text-neon">\
+                \uc0\u55357 \u56594  PREMIUM CASE STUDY\
+              </span>\
+              <button\
+                type="button"\
+                onClick=\{handlePaidClick\}\
+                className="rounded-xl bg-neon px-5 py-3 text-sm sm:text-base font-bold text-black neon-glow transition hover:opacity-95 break-keep"\
+              >\
+                \uc0\u48708 \u49847 \u54620  \u51216 \u54252  \u49345 \u49464  \u48516 \u49437  \u49324 \u47168  \u51104 \u44552 \u54644 \u51228 \u54616 \u44592 \
+              </button>\
+              <p className="text-[11px] text-muted-fg break-keep">\
+                \uc0\u44208 \u51228  \u49884  STEP 2 \u49884 \u51596 \u48324  VMD \u52992 \u50612 \u44620 \u51648  \u54217 \u49373  \u47924 \u47308 \
+              </p>\
+            </div>\
+          </div>\
+        </div>\
+\
+        <div className="mt-8 text-center">\
+          <button\
+            type="button"\
+            onClick=\{onReset\}\
+            className="text-sm text-muted-fg underline-offset-4 hover:text-neon hover:underline"\
+          >\
+            \uc0\u8592  \u52628 \u44032  \u51652 \u45800 \u54616 \u44592 \
+          </button>\
+        </div>\
+      </section>\
+\
+      \{/* Section 4 \'97 3D Layout Simulation Preview (micro-transaction) */\}\
+      <section className="mt-10 rounded-2xl border border-border bg-surface p-6 sm:p-8">\
+        <div className="mb-6 text-center break-keep">\
+          <h3 className="text-xl sm:text-2xl font-extrabold">\
+            \uc0\u55357 \u56528  3D \u44277 \u44036  \u44060 \u49440  \u49884 \u48044 \u47112 \u51060 \u49496  \u48120 \u47532 \u48372 \u44592 \
+          </h3>\
+          <p className="mt-2 text-sm text-muted-fg break-keep whitespace-pre-line">\
+            \{"\uc0\u45236  \u44032 \u44172  \u49324 \u51652 \u51012  \u44592 \u48152 \u51004 \u47196  \u44032 \u44396  \u48176 \u52824 \u50752  \u46041 \u49440 \u51060  \u48148 \u45072 \\u00a0\\n\u52572 \u51333  \u51064 \u53580 \u47532 \u50612  \u47112 \u51060 \u50500 \u50883 \u51012  3D \u51060 \u48120 \u51648 \u47196  \u48120 \u47532  \u54869 \u51064 \u54644 \u48372 \u49464 \u50836 .\\n"\}\
+          </p>\
+        </div>\
+\
+        <div className="relative overflow-hidden rounded-xl border border-neon/30 bg-bg p-6 sm:p-8">\
+          \{/* 3D wireframe blueprint mock */\}\
+          <div\
+            className="relative mx-auto h-64 sm:h-80 w-full max-w-xl"\
+            style=\{\{ perspective: "900px" \}\}\
+            aria-hidden\
+          >\
+            <div\
+              className="absolute inset-0 rounded-lg border border-neon/40"\
+              style=\{\{\
+                transform: "rotateX(58deg) rotateZ(-12deg)",\
+                transformStyle: "preserve-3d",\
+                backgroundImage:\
+                  "linear-gradient(rgba(37,150,190,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(37,150,190,0.35) 1px, transparent 1px)",\
+                backgroundSize: "32px 32px",\
+                boxShadow:\
+                  "0 0 60px rgba(37,150,190,0.25), inset 0 0 40px rgba(37,150,190,0.15)",\
+              \}\}\
+            >\
+              \{/* Mock furniture footprints */\}\
+              <div className="absolute left-[12%] top-[18%] h-10 w-24 rounded-sm border border-neon/70 bg-neon/10" />\
+              <div className="absolute right-[14%] top-[26%] h-12 w-12 rounded-sm border border-neon/70 bg-neon/10" />\
+              <div className="absolute left-[40%] top-[55%] h-14 w-28 rounded-sm border border-neon/70 bg-neon/10" />\
+              <div className="absolute right-[10%] bottom-[12%] h-10 w-20 rounded-sm border border-neon/70 bg-neon/10" />\
+              \{/* Flow arrow */\}\
+              <div className="absolute left-[20%] top-[40%] right-[20%] h-px bg-gradient-to-r from-transparent via-neon to-transparent" />\
+            </div>\
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-center pb-2">\
+              <span className="rounded-full border border-neon/30 bg-bg/70 px-3 py-1 text-[10px] uppercase tracking-widest text-neon backdrop-blur">\
+                Route<span className="text-neon">&amp;</span> \'b7 3D BLUEPRINT MOCK\
+              </span>\
+            </div>\
+          </div>\
+\
+          <div className="mt-8 flex justify-center">\
+            <button\
+              type="button"\
+              onClick=\{() =>\
+                toast("3D \uc0\u51060 \u48120 \u51648  \u49884 \u48044 \u47112 \u51060 \u49496  \u48143  600\u50896  \u44208 \u51228  \u44592 \u45733 \u51060  \u51456 \u48708  \u51473 \u51077 \u45768 \u45796 .", \{\
+                  description: "\uc0\u47088 \u52845  \u49884  \u44032 \u51109  \u47676 \u51200  \u50508 \u47140 \u46300 \u47540 \u44172 \u50836 .",\
+                \})\
+              \}\
+              className="rounded-xl bg-neon px-6 py-3.5 text-sm sm:text-base font-bold text-black neon-glow transition hover:opacity-95 break-keep"\
+            >\
+              \uc0\u46041 \u49440  \u48152 \u50689  3D \u52572 \u51333  \u51060 \u48120 \u51648 \u44032  \u44417 \u44552 \u54616 \u45796 \u47732 ?\
+            </button>\
+          </div>\
+          <p className="mt-3 text-center text-[11px] text-muted-fg break-keep">\
+            \uc0\u52964 \u54588 \u44050 \u48372 \u45796  \u44032 \u48316 \u50868  \u47560 \u51060 \u53356 \u47196  \u44208 \u51228 \u47196  \u52572 \u51333  \u47112 \u51060 \u50500 \u50883 \u44620 \u51648  \u54620  \u48264 \u50640 .\
+          </p>\
+        </div>\
+\
+        <div className="mt-8 text-center">\
+          <button\
+            type="button"\
+            onClick=\{onReset\}\
+            className="text-sm text-muted-fg underline-offset-4 hover:text-neon hover:underline"\
+          >\
+            \uc0\u8592  \u52628 \u44032  \u51652 \u45800 \u54616 \u44592 \
+          </button>\
+        </div>\
+      </section>\
+    </div>\
+  );\
+\}\
+\
+/* ---------------- Score ring ---------------- */\
+\
+function ScoreRing(\{ value \}: \{ value: number \}) \{\
+  return (\
+    <div\
+      className="score-ring relative flex h-40 w-40 shrink-0 items-center justify-center rounded-full neon-glow"\
+      style=\{\{ ["--score" as string]: value \}\}\
+    >\
+      <div className="flex h-32 w-32 flex-col items-center justify-center rounded-full bg-surface">\
+        <span className="text-4xl font-extrabold text-neon neon-text-glow">\{value\}</span>\
+        <span className="text-xs text-muted-fg">/ 100</span>\
+      </div>\
+    </div>\
+  );\
+\}\
+\
+/* ---------------- Footer ---------------- */\
+\
+function Footer() \{\
+  return (\
+    <footer className="border-t border-border bg-bg">\
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-3 px-5 py-8 text-xs text-muted-fg sm:flex-row break-keep text-center sm:text-left">\
+        <p>\'a9 2026 Route<span className="text-neon">&amp;</span>. \uc0\u47784 \u46304  \u44277 \u44036 \u51032  \u44221 \u54744 \u51012  \u47588 \u52636 \u47196  \u50672 \u44208 \u54633 \u45768 \u45796 .</p>\
+        <div className="flex gap-4">\
+          <a className="hover:text-neon" href="#">\uc0\u51060 \u50857 \u50557 \u44288 </a>\
+          <a className="hover:text-neon" href="#">\uc0\u44060 \u51064 \u51221 \u48372 \u52376 \u47532 \u48169 \u52840 </a>\
+          <a className="hover:text-neon" href="#">\uc0\u47928 \u51032 </a>\
+        </div>\
+      </div>\
+    </footer>\
+  );\
+\}\
+}
